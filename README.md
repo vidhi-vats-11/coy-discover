@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Coy Discover ❤️
 
 Coy Discover is a simple profile discovery and matching application where users can explore profiles, like or pass, and connect through mutual likes.
@@ -58,3 +59,7 @@ Open `http://localhost:5173` in your browser.
 **Vidhi Vats**
 
 [GitHub](https://github.com/vidhi-vats-11) · [LinkedIn](https://www.linkedin.com/in/vidhivats-/)
+=======
+# coy-discover
+A profile discovery and mutual matching application
+>>>>>>> 833a124ab6a79a8ae8eee66ddd1ec50205d97efc
