@@ -85,13 +85,6 @@ server/
   tests/api.test.js       API tests
 ```
 
-## What I'd do next
-
-- Real users and login instead of one fixed user. Then likes from both sides can be saved as swipes, and `likedYou` is not needed
-- Pagination in `/feed` instead of sending all profiles at once
-- Undo button for last pass
-- Frontend tests for swipe
-
 ## Author
 
 Vidhi Vats · [GitHub](https://github.com/vidhi-vats-11) · [LinkedIn](https://www.linkedin.com/in/vidhivats-/)
