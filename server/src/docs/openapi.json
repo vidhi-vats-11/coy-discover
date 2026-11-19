@@ -1,0 +1,286 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Coy Discover API",
+    "version": "1.0.0",
+    "description": "API for the Discover tab. There is one logged in user (demo-user), so no auth is needed. One-sided likes are never revealed: `likedYou` is never returned."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000"
+    }
+  ],
+  "paths": {
+    "/feed": {
+      "get": {
+        "summary": "Profiles the user has not swiped on yet",
+        "responses": {
+          "200": {
+            "description": "List of profiles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "count": {
+                      "type": "integer",
+                      "example": 30
+                    },
+                    "profiles": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Profile"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/swipe": {
+      "post": {
+        "summary": "Save a like or pass",
+        "description": "Returns `matchCreated: true` and the profile only when the like is mutual. A pass and a one-sided like give the same response.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "profileId",
+                  "action"
+                ],
+                "properties": {
+                  "profileId": {
+                    "type": "string",
+                    "example": "cmi4x2k0v0000abcd1234"
+                  },
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "LIKE",
+                      "PASS"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Swipe saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "matchCreated": {
+                      "type": "boolean"
+                    },
+                    "match": {
+                      "nullable": true,
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/Profile"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "examples": {
+                  "match": {
+                    "summary": "Mutual like",
+                    "value": {
+                      "success": true,
+                      "matchCreated": true,
+                      "match": {
+                        "id": "cmi4x2k0v0000abcd1234",
+                        "name": "Abhinav Vats",
+                        "age": 23,
+                        "photo": "https://i.pravatar.cc/600?img=12",
+                        "bio": "Coffee lover, coder and weekend explorer.",
+                        "city": "Delhi",
+                        "college": "IIT Delhi",
+                        "interests": "Coding,Travel,Music"
+                      }
+                    }
+                  },
+                  "noMatch": {
+                    "summary": "Pass or one-sided like",
+                    "value": {
+                      "success": true,
+                      "matchCreated": false,
+                      "match": null
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing profileId or action is not LIKE/PASS",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Profile not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Profile already swiped",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/matches": {
+      "get": {
+        "summary": "Mutual matches, newest first",
+        "responses": {
+          "200": {
+            "description": "List of matches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "count": {
+                      "type": "integer",
+                      "example": 1
+                    },
+                    "matches": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "matchId": {
+                            "type": "string"
+                          },
+                          "matchedAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "profile": {
+                            "$ref": "#/components/schemas/Profile"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Profile": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "example": "Harshita Sharma"
+          },
+          "age": {
+            "type": "integer",
+            "example": 21
+          },
+          "photo": {
+            "type": "string",
+            "format": "uri"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string",
+            "example": "Patna"
+          },
+          "college": {
+            "type": "string",
+            "nullable": true,
+            "example": "NIT Patna"
+          },
+          "interests": {
+            "type": "string",
+            "description": "Comma separated",
+            "example": "Reading,Photography,Travel"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "responses": {
+      "ServerError": {
+        "description": "Something went wrong on the server",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  }
+}

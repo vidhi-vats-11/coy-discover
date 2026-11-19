@@ -170,3 +170,18 @@ describe("GET /matches", () => {
     expect(res.body.matches[0].profile).not.toHaveProperty("likedYou");
   });
 });
+
+describe("API docs", () => {
+  it("serves Swagger UI at /docs", async () => {
+    const res = await request(app).get("/docs/");
+
+    expect(res.status).toBe(200);
+    expect(res.text).toContain("swagger-ui");
+  });
+
+  it("documents every endpoint", async () => {
+    const res = await request(app).get("/openapi.json");
+
+    expect(Object.keys(res.body.paths).sort()).toEqual(["/feed", "/matches", "/swipe"]);
+  });
+});
