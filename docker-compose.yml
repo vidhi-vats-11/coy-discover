@@ -1,0 +1,23 @@
+services:
+  server:
+    build: ./server
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: file:/data/coy.db
+      CLIENT_URL: http://localhost:5173
+    volumes:
+      - db-data:/data
+
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_API_URL: http://localhost:5000
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+
+volumes:
+  db-data:

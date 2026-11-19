@@ -307,6 +307,12 @@ const profiles = [
 ];
 
 async function main() {
+  // Used by Docker: seed only the first time, so swipes survive a restart.
+  if (process.argv.includes("--if-empty") && (await prisma.profile.count()) > 0) {
+    console.log("Profiles already exist, skipping seed.");
+    return;
+  }
+
   // Clear existing demo data in dependency order.
   await prisma.match.deleteMany();
   await prisma.swipe.deleteMany();
