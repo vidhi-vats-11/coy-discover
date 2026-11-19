@@ -1,6 +1,6 @@
 # Coy Discover
 
-A swipe-based "Discover" tab for Coy, built for the Coy SDE intern assignment. It is a standalone app with a blank Home tab, a Discover tab and a Matches tab.
+A swipe based "Discover" tab for Coy. I made this for the Coy SDE intern assignment. It has a blank Home tab, a Discover tab and a Matches tab.
 
 ## Stack
 
@@ -20,7 +20,7 @@ cd server
 npm install
 echo 'DATABASE_URL="file:./dev.db"' > .env
 npx prisma migrate deploy
-npm run seed      # 30 profiles, 10 of them have already liked you
+npm run seed      # 30 profiles, 9 of them have already liked you
 npm run dev       # http://localhost:5000
 ```
 
@@ -39,9 +39,9 @@ cd server
 npm test
 ```
 
-The tests use a separate `prisma/test.db`, so they don't touch your dev data.
+Tests use a separate `prisma/test.db`, so dev data is not changed.
 
-To start over with fresh data, run `npm run seed` again. It clears all swipes and matches.
+To reset the data, run `npm run seed` again. It deletes all swipes and matches.
 
 ## API
 
@@ -55,18 +55,18 @@ To start over with fresh data, run `npm run seed` again. It clears all swipes an
 
 ## How matching works
 
-There is one logged-in user (`demo-user`), as the brief allows. Each seeded profile has a `likedYou` flag that stands in for "this person has already liked the user." A match is created only when the user likes a profile that has `likedYou = true`.
+There is only one logged in user (`demo-user`), as said in the assignment. Each profile has a `likedYou` field. If it is `true`, it means that person already liked the user. A match is made only when the user likes a profile with `likedYou = true`.
 
-The swipe and the match are written in a single transaction, so a like can't be saved without its match. The `@@unique([userId, profileId])` constraint on `Swipe` means a profile can only be swiped once, even if two requests arrive at the same time (for example, a double tap). One of them gets a `409`.
+Swipe and match are saved in one transaction, so a like is never saved without its match. `Swipe` has a unique key on `(userId, profileId)`, so one profile can be swiped only once. Even if two requests come at the same time (like a double tap), one of them gets `409`.
 
 ## Privacy
 
-The core promise is that a user never finds out who liked them unless it's mutual. Here is how the API keeps that promise:
+Main rule of Coy: user should never know who liked them, unless it is mutual. This is how I handled it:
 
-- `likedYou` is never sent to the client. Every endpoint returns profiles through the same `publicProfileFields` select, which leaves it out.
-- `/swipe` returns exactly the same response for a pass and for a one-sided like (`matchCreated: false, match: null`). Without this, a user could pass on someone and still learn from the response whether that person liked them. There's a test for this.
-- `/feed` is ordered by creation time, not by whether someone liked you, so the order of cards doesn't give anything away either.
-- Profile details only come back from `/swipe` when the like is mutual.
+- `likedYou` is never sent to the frontend. All APIs use `publicProfileFields`, which does not include it.
+- `/swipe` gives the same response for a pass and a one-sided like (`matchCreated: false, match: null`). Otherwise user can pass someone and still find out from the response if that person liked them. There is a test for this.
+- `/feed` is sorted by created time, not by who liked you, so card order also doesn't tell anything.
+- `/swipe` sends profile details only when it is a match.
 
 ## Project structure
 
@@ -87,10 +87,10 @@ server/
 
 ## What I'd do next
 
-- Real users and auth instead of one hardcoded user, with likes stored as swipes from both sides instead of the `likedYou` flag
-- Paginate `/feed` instead of returning every profile at once
-- An undo for the last pass
-- Frontend tests for the swipe flow
+- Real users and login instead of one fixed user. Then likes from both sides can be saved as swipes, and `likedYou` is not needed
+- Pagination in `/feed` instead of sending all profiles at once
+- Undo button for last pass
+- Frontend tests for swipe
 
 ## Author
 

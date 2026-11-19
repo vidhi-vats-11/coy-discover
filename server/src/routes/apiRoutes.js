@@ -74,9 +74,8 @@ router.post("/swipe", async (req, res) => {
       });
     }
 
-    // The swipe and the match are written together, so we never end up with
-    // a LIKE saved but the match missing. A second swipe on the same profile
-    // hits the @@unique([userId, profileId]) constraint and is rejected.
+    // Save swipe and match together. Same profile swiped twice will fail
+    // because of the unique key on (userId, profileId).
     const isMutual = action === "LIKE" && profile.likedYou;
 
     await prisma.$transaction(async (tx) => {
@@ -91,9 +90,8 @@ router.post("/swipe", async (req, res) => {
       }
     });
 
-    // Only send profile details back when it's mutual. For a pass or a
-    // one-sided like the response is identical, so it can't be used to
-    // find out who liked the user.
+    // Send profile only if it's a match. Pass and one-sided like give the
+    // same response, so user can't find out who liked them.
     let match = null;
     if (isMutual) {
       match = await prisma.profile.findUnique({

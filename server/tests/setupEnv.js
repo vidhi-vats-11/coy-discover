@@ -1,2 +1,2 @@
-// Tests run against their own SQLite file so they never touch dev.db.
+// Use a separate db for tests so dev.db is not touched.
 process.env.DATABASE_URL = "file:./test.db";

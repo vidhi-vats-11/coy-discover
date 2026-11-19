@@ -1,10 +1,10 @@
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { GraduationCap, MapPin } from "lucide-react";
 
-// How far (px) the card has to be dragged before it counts as a swipe.
+// Drag more than this (in px) to count as a swipe.
 const SWIPE_THRESHOLD = 110;
 
-// The card leaves the screen in the direction of the swipe.
+// Card goes out in the same direction as the swipe.
 const cardVariants = {
   enter: { opacity: 0, scale: 0.95, y: 15 },
   center: { opacity: 1, scale: 1, x: 0, y: 0 },

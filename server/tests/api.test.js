@@ -112,8 +112,7 @@ describe("POST /swipe", () => {
   });
 
   it("gives the same response for a pass and a one-sided like", async () => {
-    // If these differed, the client could work out who liked the user
-    // just by passing on them.
+    // If these are different, user can find out who liked them by passing.
     const pass = await request(app)
       .post("/swipe")
       .send({ profileId: likesUser.id, action: "PASS" });

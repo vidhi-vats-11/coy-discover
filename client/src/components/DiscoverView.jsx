@@ -16,13 +16,13 @@ export default function DiscoverView({
   return (
     <section className="mx-auto flex max-w-md flex-col items-center">
       <div className="mb-5 w-full text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#f15b67]">
+        <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#f15b67] [@media(max-height:700px)]:hidden">
           Find your person
         </p>
         <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
           Discover
         </h1>
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-gray-500 [@media(max-height:700px)]:hidden">
           Meet interesting people from your campus world.
         </p>
       </div>
@@ -42,7 +42,8 @@ export default function DiscoverView({
         </div>
       ) : current ? (
         <>
-          <div className="relative h-[490px] w-full sm:h-[540px]">
+          {/* Card height depends on screen height so buttons are not hidden behind nav on phones */}
+          <div className="relative h-[calc(100svh-420px)] max-h-[540px] min-h-[280px] w-full">
             <AnimatePresence custom={lastAction}>
               <ProfileCard
                 key={current.id}

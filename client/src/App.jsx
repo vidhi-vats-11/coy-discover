@@ -37,8 +37,7 @@ function App() {
     }
   }, []);
 
-  // Initial load. `loading` already starts as true, so state is only set
-  // once the requests come back.
+  // Load feed and matches on first render.
   useEffect(() => {
     getFeed()
       .then(setProfiles)
@@ -52,8 +51,7 @@ function App() {
   const handleSwipe = async (profile, action) => {
     if (swiping) return;
 
-    // Remove the card straight away so the swipe feels instant; the request
-    // runs while the exit animation plays.
+    // Remove card first so swipe feels fast, then save it on the server.
     setLastAction(action);
     setSwiping(true);
     setProfiles((prev) => prev.filter((p) => p.id !== profile.id));
