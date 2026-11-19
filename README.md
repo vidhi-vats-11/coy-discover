@@ -8,40 +8,76 @@ A swipe based "Discover" tab for Coy. I made this for the Coy SDE intern assignm
 - **Backend:** Node.js + Express
 - **Database:** SQLite through Prisma
 - **Tests:** Jest + Supertest
+- **API docs:** Swagger UI
+- **Docker:** Docker Compose for running everything with one command
 
-## Running it locally
+## How to run
 
-You need Node 20 or newer.
+There are two ways: with Docker (easiest) or directly with Node.
 
-**Backend**
+### Option 1: Run with Docker
+
+You only need [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+
+```bash
+git clone https://github.com/vidhi-vats-11/coy-discover.git
+cd coy-discover
+docker compose up --build
+```
+
+Then open:
+
+- App: http://localhost:5173
+- API: http://localhost:5000
+- API docs (Swagger): http://localhost:5000/docs
+
+The first start creates the database and adds the 30 profiles. Data is saved in a Docker volume, so swipes and matches stay after a restart.
+
+To stop: press `Ctrl + C`, or run `docker compose down`.
+To start fresh with new data: `docker compose down -v` (this deletes the saved data), then `docker compose up --build` again.
+
+### Option 2: Run locally with Node
+
+You need Node 20 or newer. Check with `node -v`.
+
+**1. Clone the repo**
+
+```bash
+git clone https://github.com/vidhi-vats-11/coy-discover.git
+cd coy-discover
+```
+
+**2. Start the backend** (first terminal)
 
 ```bash
 cd server
 npm install
 echo 'DATABASE_URL="file:./dev.db"' > .env
-npx prisma migrate deploy
-npm run seed      # 30 profiles, 9 of them have already liked you
-npm run dev       # http://localhost:5000
+npx prisma migrate deploy   # creates the SQLite database and tables
+npm run seed                # adds 30 profiles, 9 of them have already liked you
+npm run dev                 # API runs on http://localhost:5000
 ```
 
-**Frontend** (in a second terminal)
+**3. Start the frontend** (second terminal, from the `coy-discover` folder)
 
 ```bash
 cd client
 npm install
-npm run dev       # http://localhost:5173
+npm run dev                 # app runs on http://localhost:5173
 ```
 
-**Tests**
+Open http://localhost:5173. Swipe right or press the heart to like, swipe left or press X to pass.
+
+**Reset data:** run `npm run seed` inside `server` again. It deletes all swipes and matches and adds the 30 profiles again.
+
+### Run the tests
 
 ```bash
 cd server
 npm test
 ```
 
-Tests use a separate `prisma/test.db`, so dev data is not changed.
-
-To reset the data, run `npm run seed` again. It deletes all swipes and matches.
+Tests use a separate `prisma/test.db`, so dev data is not changed. They cover all three APIs, the match logic, the privacy rules and the docs.
 
 ## API
 
@@ -50,6 +86,8 @@ To reset the data, run `npm run seed` again. It deletes all swipes and matches.
 | GET | `/feed` | Profiles the user hasn't swiped on yet |
 | POST | `/swipe` | Body: `{ profileId, action: "LIKE" \| "PASS" }`. Saves the swipe and returns `{ matchCreated, match }` |
 | GET | `/matches` | The user's mutual matches, newest first |
+
+Full API contract with request and response examples is in Swagger: http://localhost:5000/docs (spec file: `server/src/docs/openapi.json`).
 
 `/swipe` returns `400` for a bad body, `404` for an unknown profile and `409` if the profile was already swiped on.
 
@@ -79,10 +117,13 @@ client/src/
 server/
   prisma/schema.prisma    Profile, Swipe, Match
   src/app.js              Express app
+  src/docs/openapi.json   Swagger / OpenAPI API contract
   src/server.js           starts the server
   src/routes/apiRoutes.js /feed, /swipe, /matches
   src/data/seed.js        30 mock profiles
   tests/api.test.js       API tests
+  Dockerfile
+docker-compose.yml        runs client + server together
 ```
 
 ## Author
