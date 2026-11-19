@@ -74,63 +74,47 @@ router.post("/swipe", async (req, res) => {
       });
     }
 
-    const existingSwipe = await prisma.swipe.findUnique({
-      where: {
-        userId_profileId: {
-          userId: USER_ID,
-          profileId,
-        },
-      },
+    // The swipe and the match are written together, so we never end up with
+    // a LIKE saved but the match missing. A second swipe on the same profile
+    // hits the @@unique([userId, profileId]) constraint and is rejected.
+    const isMutual = action === "LIKE" && profile.likedYou;
+
+    await prisma.$transaction(async (tx) => {
+      await tx.swipe.create({
+        data: { userId: USER_ID, profileId, action },
+      });
+
+      if (isMutual) {
+        await tx.match.create({
+          data: { userId: USER_ID, profileId },
+        });
+      }
     });
 
-    if (existingSwipe) {
+    // Only send profile details back when it's mutual. For a pass or a
+    // one-sided like the response is identical, so it can't be used to
+    // find out who liked the user.
+    let match = null;
+    if (isMutual) {
+      match = await prisma.profile.findUnique({
+        where: { id: profileId },
+        select: publicProfileFields,
+      });
+    }
+
+    res.json({
+      success: true,
+      matchCreated: isMutual,
+      match,
+    });
+  } catch (error) {
+    if (error.code === "P2002") {
       return res.status(409).json({
         success: false,
         message: "You have already swiped on this profile.",
       });
     }
 
-    await prisma.swipe.create({
-      data: {
-        userId: USER_ID,
-        profileId,
-        action,
-      },
-    });
-
-    let matchCreated = false;
-
-    if (action === "LIKE" && profile.likedYou) {
-      await prisma.match.create({
-        data: {
-          userId: USER_ID,
-          profileId,
-        },
-      });
-
-      matchCreated = true;
-    }
-
-    res.json({
-      success: true,
-      message: matchCreated
-        ? "It's a match!"
-        : "Swipe recorded successfully.",
-      matchCreated,
-      match: matchCreated
-        ? {
-            id: profile.id,
-            name: profile.name,
-            age: profile.age,
-            photo: profile.photo,
-            bio: profile.bio,
-            city: profile.city,
-            college: profile.college,
-            interests: profile.interests,
-          }
-        : null,
-    });
-  } catch (error) {
     console.error("Swipe error:", error);
     res.status(500).json({
       success: false,
